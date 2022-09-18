@@ -2,9 +2,17 @@
 
 pub use pallet::*;
 
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
+
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
+
 #[frame_support::pallet]
 pub mod pallet {
-	use frame_support::{inherent::Vec, pallet_prelude::*};
+	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 
 	pub type ClubIdx = u32;
@@ -35,10 +43,10 @@ pub mod pallet {
 	// Errors inform users that something went wrong.
 	#[pallet::error]
 	pub enum Error<T> {
-		/// Error names should be descriptive.
-		NoneValue,
-		/// Errors should have helpful documentation associated with them.
-		StorageOverflow,
+		/// Removing non-existent.
+		ClubMemberDoesNotExist,
+		/// Trying to add an existing member.
+		ClubMemberAlreadyExists,
 	}
 
 	#[pallet::call]
@@ -49,8 +57,10 @@ pub mod pallet {
 			club_idx: ClubIdx,
 			account: T::AccountId,
 		) -> DispatchResult {
-			let who = ensure_root(origin)?;
-
+			ensure_root(origin)?;
+			if Clubs::<T>::contains_key(club_idx, &account) {
+				return Err(Error::<T>::ClubMemberAlreadyExists.into())
+			}
 			Clubs::<T>::insert(club_idx, account, true);
 			Ok(())
 		}
@@ -60,25 +70,13 @@ pub mod pallet {
 			club_idx: ClubIdx,
 			account: T::AccountId,
 		) -> DispatchResult {
-			let who = ensure_root(origin)?;
+			ensure_root(origin)?;
+			if !Clubs::<T>::contains_key(club_idx, &account) {
+				return Err(Error::<T>::ClubMemberDoesNotExist.into())
+			}
 
 			Clubs::<T>::remove(club_idx, account);
 			Ok(())
 		}
-	}
-}
-
-pub fn add(left: usize, right: usize) -> usize {
-	left + right
-}
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-
-	#[test]
-	fn it_works() {
-		let result = add(2, 2);
-		assert_eq!(result, 4);
 	}
 }
