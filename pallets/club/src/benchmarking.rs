@@ -3,21 +3,17 @@
 use super::*;
 
 #[allow(unused)]
-use crate::Pallet as Template;
+use crate::Pallet as PalletClub;
 use frame_benchmarking::{benchmarks, whitelisted_caller};
 use frame_system::RawOrigin;
 
-/*
 benchmarks! {
-	do_something {
-		let s in 0 .. 100;
-		let caller: T::AccountId = whitelisted_caller();
-	}: _(RawOrigin::Signed(caller), s)
+	add_member {
+		let acc: T::AccountId = whitelisted_caller();
+	}: _(RawOrigin::Root, 1, acc.clone())
 	verify {
-		assert_eq!(Something::<T>::get(), Some(s));
+		assert_eq!(Clubs::<T>::get(1, acc), true);
 	}
 
-	impl_benchmark_test_suite!(Template, crate::mock::new_test_ext(), crate::mock::Test);
+	impl_benchmark_test_suite!(PalletClub, crate::mock::new_test_ext(), crate::mock::Test);
 }
-
- */
